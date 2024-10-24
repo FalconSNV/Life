@@ -1,41 +1,46 @@
+import time
+
 from matplotlib import pyplot as plt
 from matplotlib import animation
 import numpy as np
-from random import randint
-from objects import Cell
+from PIL import Image, ImageDraw
+import imageio
+import os
+from frame_handler import FrameHandler
 
 
 class Life:
 
     @staticmethod
-    def start(size: int, first_gen_percent: float | int = 33, frame_interval: int = 100):
+    def start(size: int, first_gen_percent: float | int = 33, frames_cnt: int = 10):
         """Запуск 'Жизни'"""
-        fig, ax = plt.subplots()
-        fig.canvas.manager.full_screen_toggle()
-        map_1 = [[] for i in range(size)]
-        map_2 = np.zeros((size, size))
-        ax.set_title("LIFE (ALT+F4 to escape)")
-        im = ax.imshow(map_2, cmap='gray', vmin=0, vmax=1)
-        for i in range(size):
-            for j in range(size):
-                x = randint(1, 100)
-                status = False
-                if x < first_gen_percent:
-                    status = True
-                map_1[i].append(Cell(i, j, status))
-        for i in range(size):
-            for j in range(size):
-                map_2[i][j] = map_1[i][j].accept()
+        if not os.path.exists("images"):
+            os.mkdir("images")
+        for image in os.listdir("images"):
+            os.remove("images/"+image)
+        map_ = Image.new("RGB", (size, size), "black")
+        draw = ImageDraw.Draw(map_)
+        map_1 = FrameHandler.make_map(size, first_gen_percent)
+        for z in range(frames_cnt):
+            FrameHandler.cells_status(size, map_1, draw)
+            map_.save(f"images/img-{z}.png")
+            FrameHandler.cells_conditions(size, map_1)
 
-        def animate(frame):
-            for i in range(size):
-                for j in range(size):
-                    map_1[i][j].check(map_1)
-            for i in range(size):
-                for j in range(size):
-                    map_2[i][j] = map_1[i][j].accept()
-            im.set_array(map_2)
-            return im,
-
-        anim = animation.FuncAnimation(fig, animate, frames=100, interval=frame_interval)
-        plt.show()
+    @staticmethod
+    def save(fps: int = 2, format: str = "GIF"):
+        """Сохранение GIF или mp4 файла"""
+        frames = []
+        for i in range(len(os.listdir("images"))):
+            frames.append(Image.open(f"images/img-{i}.png", "r"))
+        if format == "GIF":
+            frames[0].save(
+                'life.gif',
+                save_all=True,
+                append_images=frames[1:],
+                optimize=True,
+                duration=1000/fps
+            )
+        elif format == "mp4":
+            with imageio.get_writer('animation.mp4', mode='I', fps=2) as writer:
+                for img in frames:
+                    writer.append_data(np.array(img))

@@ -1,3 +1,6 @@
 /venv
 /.idea
 /__pycache__
+/*.gif
+/*.mp4
+/images
