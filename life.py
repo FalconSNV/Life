@@ -2,14 +2,13 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 import numpy as np
 from random import randint
-from typing import Union
 from objects import Cell
 
 
 class Life:
 
     @staticmethod
-    def start(size: int, first_gen_percent: Union[float, int] = 33, frame_interval: int = 100):
+    def start(size: int, first_gen_percent: float | int = 33, frame_interval: int = 100):
         """Запуск 'Жизни'"""
         fig, ax = plt.subplots()
         fig.canvas.manager.full_screen_toggle()
